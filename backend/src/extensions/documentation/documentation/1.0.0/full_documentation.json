@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-08-26T23:25:57.600Z"
+    "x-generation-date": "2026-08-27T21:56:43.419Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -6340,6 +6340,9 @@
                           "video_url": {
                             "type": "string"
                           },
+                          "note": {
+                            "type": "string"
+                          },
                           "order": {
                             "type": "integer"
                           },
@@ -9127,6 +9130,9 @@
                           "video_url": {
                             "type": "string"
                           },
+                          "note": {
+                            "type": "string"
+                          },
                           "order": {
                             "type": "integer"
                           },
@@ -11480,6 +11486,9 @@
                           "video_url": {
                             "type": "string"
                           },
+                          "note": {
+                            "type": "string"
+                          },
                           "order": {
                             "type": "integer"
                           },
@@ -12242,6 +12251,9 @@
               "video_url": {
                 "type": "string"
               },
+              "note": {
+                "type": "string"
+              },
               "order": {
                 "type": "integer"
               },
@@ -12333,6 +12345,9 @@
           },
           "content": {},
           "video_url": {
+            "type": "string"
+          },
+          "note": {
             "type": "string"
           },
           "order": {
@@ -13868,6 +13883,9 @@
                     },
                     "content": {},
                     "video_url": {
+                      "type": "string"
+                    },
+                    "note": {
                       "type": "string"
                     },
                     "order": {
@@ -16103,6 +16121,9 @@
                           },
                           "content": {},
                           "video_url": {
+                            "type": "string"
+                          },
+                          "note": {
                             "type": "string"
                           },
                           "order": {
@@ -18442,6 +18463,9 @@
                           },
                           "content": {},
                           "video_url": {
+                            "type": "string"
+                          },
+                          "note": {
                             "type": "string"
                           },
                           "order": {

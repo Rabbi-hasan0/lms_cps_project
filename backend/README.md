@@ -214,4 +214,4 @@ The project is designed to use:
 
 ## 👨‍💻 Author
 
-LMS Platform Backend built with Strapi v5.
+LMS Platform Backend built with Rabbi Hasan. For any questions or contributions, feel free to reach out or submit a pull request.

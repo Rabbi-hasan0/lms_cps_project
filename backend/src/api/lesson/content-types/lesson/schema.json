@@ -20,6 +20,9 @@
     "video_url": {
       "type": "string"
     },
+    "note": {
+      "type": "text"
+    },
     "order": {
       "type": "integer"
     },
