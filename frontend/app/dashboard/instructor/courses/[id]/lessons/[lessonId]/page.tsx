@@ -1,4 +1,4 @@
-// app/dashboard/admin/courses/[id]/lessons/[lessonId]/page.tsx
+// app/dashboard/instructor/courses/[id]/lessons/[lessonId]/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -246,7 +246,7 @@ export default function LessonDetailsPage() {
       setNewLessonForm({ title: '', videoUrl: '', description: '', notes: '' });
 
       if (createdLessonDocId) {
-        router.push(`/dashboard/content-manager/courses/${courseId}/lessons/${createdLessonDocId}`);
+        router.push(`/dashboard/instructor/courses/${courseId}/lessons/${createdLessonDocId}`);
       } else {
         await loadData();
       }
@@ -291,7 +291,7 @@ export default function LessonDetailsPage() {
         <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
         <h2 className="text-lg font-bold text-white">Lesson Not Found</h2>
         <Link
-          href={`/dashboard/admin/courses/${courseId}`}
+          href={`/dashboard/instructor/courses/${courseId}`}
           className="inline-block mt-2 px-4 py-2 bg-indigo-600 rounded-xl text-xs text-white"
         >
           Back to Course
@@ -308,7 +308,7 @@ export default function LessonDetailsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            href={`/dashboard/admin/courses/${courseId}`}
+            href={`/dashboard/instructor/courses/${courseId}`}
             className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 transition"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -422,7 +422,7 @@ export default function LessonDetailsPage() {
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-400 text-xs">প্যারেন্ট কোর্স:</span>
                 <Link
-                  href={`/dashboard/admin/courses/${courseId}`}
+                  href={`/dashboard/instructor/courses/${courseId}`}
                   className="font-medium text-indigo-400 hover:text-indigo-300 text-xs truncate max-w-[170px]"
                 >
                   {course?.title || 'General'}
@@ -444,7 +444,7 @@ export default function LessonDetailsPage() {
                 return (
                   <Link
                     key={item.id || idx}
-                    href={`/dashboard/admin/courses/${courseId}/lessons/${itemTargetId}`}
+                    href={`/dashboard/instructor/courses/${courseId}/lessons/${itemTargetId}`}
                     className={`flex items-center gap-2.5 p-2 rounded-xl text-xs transition ${
                       isCurrent
                         ? 'bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-semibold'

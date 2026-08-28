@@ -71,6 +71,12 @@
       "relation": "oneToMany",
       "target": "api::course.course",
       "mappedBy": "instructor"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::course.course",
+      "inversedBy": "creator"
     }
   }
 }

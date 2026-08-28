@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Loader2,
+  Settings,
 } from 'lucide-react';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
@@ -72,9 +73,10 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   };
 
   const navLinks = [
-    { name: 'My Courses & Lessons', href: '/dashboard/instructor', icon: BookOpen, exact: true },
-    { name: 'Quizzes', href: '/dashboard/instructor/quizzes', icon: HelpCircle },
-    { name: 'Student Progress', href: '/dashboard/instructor/progress', icon: BarChart2 },
+    { name: 'Dashboard', href: '/dashboard/instructor', icon: HelpCircle, exact: true },
+    { name: 'My Courses & Lessons', href: '/dashboard/instructor/courses', icon: BookOpen, exact: false },
+    { name: 'Student Progress', href: '/dashboard/instructor/progress', icon: BarChart2, exact: false },
+    { name: 'Settings', href: '/dashboard/instructor/settings', icon: Settings, exact: false },
   ];
 
   if (loading || !isAuthorized) {

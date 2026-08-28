@@ -1,4 +1,4 @@
-// app/dashboard/admin/courses/[id]/page.tsx
+// app/dashboard/instructor/courses/[id]/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Clock,
   PlayCircle,
+  Calendar,
   Video,
   HelpCircle,
   GraduationCap,
@@ -29,24 +30,17 @@ import {
 } from 'lucide-react';
 
 interface CourseDetails {
-  id: number | string;
+  id: number;
   documentId?: string;
   title: string;
   description?: string;
-  creator?: {
-    id?: number | string;
-    username?: string;
-    email?: string;
-  };
   instructor?: {
-    id?: number | string;
-    username?: string;
-    email?: string;
+    username: string;
+    email: string;
   };
   createdAt: string;
-  updatedAt?: string;
   lessons: Array<{
-    id: number | string;
+    id: number;
     documentId?: string;
     title: string;
     duration?: string;
@@ -59,7 +53,7 @@ interface CourseDetails {
   dueLessons: number;
   progressPercentage: number;
   students: Array<{
-    id: number | string;
+    id: number;
     name: string;
     email: string;
     enrolledAt: string;
@@ -67,7 +61,7 @@ interface CourseDetails {
   }>;
 }
 
-// Strapi Blocks থেকে প্লেইন টেক্সট বের করার হেল্পার
+// 🛠️ Strapi Blocks থেকে টেক্সট বের করার হেল্পার
 const extractTextFromBlocks = (raw: any): string => {
   if (!raw) return '';
   if (typeof raw === 'string') return raw;
@@ -85,7 +79,7 @@ const extractTextFromBlocks = (raw: any): string => {
   return '';
 };
 
-// টেক্সটকে Strapi Blocks ফরম্যাটে নেওয়া
+// 🛠️ সাধারণ টেক্সটকে Strapi Blocks JSON-এ কনভার্ট করার হেল্পার
 const formatToStrapiBlocks = (text: string) => {
   if (!text || text.trim() === '') {
     return [
@@ -120,6 +114,7 @@ export default function SingleCoursePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
 
+  // Active Tab
   const [activeTab, setActiveTab] = useState<'lessons' | 'students' | 'quizzes'>('lessons');
 
   // Modal State (Create / Edit Lesson)
@@ -128,13 +123,14 @@ export default function SingleCoursePage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [isDetectingDuration, setIsDetectingDuration] = useState(false);
 
-  // Delete Modal State
+  // Custom Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [lessonToDelete, setLessonToDelete] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [lessonForm, setLessonForm] = useState({
     title: '',
+    duration: '',
     videoUrl: '',
     description: '',
     notes: '',
@@ -148,96 +144,60 @@ export default function SingleCoursePage() {
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      // ১. কোর্স ফেচ করা (ইন্সট্রাক্টর, ক্রিয়েটর, লেসন সহ)
-      const queryParams = new URLSearchParams({
-        'populate[thumbnail]': 'true',
-        'populate[creator]': 'true',
-        'populate[instructor]': 'true',
-        'populate[lessons]': 'true',
-        'populate[enrollments][populate][user]': 'true',
-      });
-
       const isNumeric = !isNaN(Number(courseId));
       let query = isNumeric
-        ? `/courses?filters[$or][0][id][$eq]=${courseId}&filters[$or][1][documentId][$eq]=${courseId}&${queryParams.toString()}`
-        : `/courses?filters[documentId][$eq]=${courseId}&${queryParams.toString()}`;
+        ? `/courses?filters[$or][0][id][$eq]=${courseId}&filters[$or][1][documentId][$eq]=${courseId}&populate=*`
+        : `/courses?filters[documentId][$eq]=${courseId}&populate=*`;
 
-      let res = await fetchApi(query, { headers });
+      const res = await fetchApi(query, { headers });
 
-      let data: any = null;
+      let data = null;
       if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
         data = res.data[0];
       } else if (res?.data && !Array.isArray(res.data)) {
         data = res.data;
-      } else if (res && !res.data) {
-        data = res;
       }
 
       if (!data) throw new Error('Course not found');
 
-      const currentDbId = data.id;
-      const currentDocId = data.documentId || '';
+      const enrollments = data.enrollments || [];
+      const enrolledStudents = enrollments.map((enr: any, idx: number) => ({
+        id: enr.id || idx + 1,
+        name: enr.user?.username || enr.student?.username || `Student ${idx + 1}`,
+        email: enr.user?.email || enr.student?.email || `student${idx + 1}@example.com`,
+        enrolledAt: enr.createdAt ? new Date(enr.createdAt).toLocaleDateString() : 'Recent',
+        progress: enr.progress || 0,
+      }));
 
-      // ২. ডাটাবেজে আগে থেকে থাকা সব লেসন আনা (ID এবং DocumentId উভয় ধরে ব্যাকআপ ফেচ)
-      let rawLessons = data.lessons || data.attributes?.lessons?.data || data.attributes?.lessons || [];
-
-      try {
-        const lessonQuery = `/lessons?filters[$or][0][course][id][$eq]=${currentDbId}&filters[$or][1][course][documentId][$eq]=${currentDocId || courseId}&populate=*&sort=order:asc,createdAt:asc`;
-        const directLessonsRes = await fetchApi(lessonQuery, { headers });
-        if (directLessonsRes?.data && Array.isArray(directLessonsRes.data) && directLessonsRes.data.length > 0) {
-          rawLessons = directLessonsRes.data;
-        }
-      } catch (err) {
-        console.warn('Fallback direct lessons fetch bypassed:', err);
-      }
-
-      // ৩. লেসনগুলো ম্যাপ করা
-      const lessonsList = (rawLessons || []).map((l: any, idx: number) => {
-        const item = l.attributes ? { id: l.id, ...l.attributes } : l;
-        return {
-          id: item.id,
-          documentId: item.documentId,
-          title: item.title || `Lesson ${idx + 1}`,
-          duration: 'Auto',
-          videoUrl: item.video_url || item.videoUrl || '',
-          description: extractTextFromBlocks(item.content || item.description),
-          notes: extractTextFromBlocks(item.note || item.notes),
-          isCompleted: false,
-        };
-      });
-
-      // ৪. এনরোলমেন্টস ম্যাপিং
-      const enrollments = data.enrollments || data.attributes?.enrollments?.data || [];
-      const enrolledStudents = enrollments.map((enr: any, idx: number) => {
-        const eData = enr.attributes ? { id: enr.id, ...enr.attributes } : enr;
-        const u = eData.user || eData.student;
-        return {
-          id: eData.id || idx + 1,
-          name: u?.username || `Student ${idx + 1}`,
-          email: u?.email || `student${idx + 1}@example.com`,
-          enrolledAt: eData.createdAt ? new Date(eData.createdAt).toLocaleDateString() : 'Recent',
-          progress: eData.progress || 0,
-        };
-      });
+      const lessonsList = (data.lessons || []).map((l: any, idx: number) => ({
+        id: l.id,
+        documentId: l.documentId,
+        title: l.title || `Lesson ${idx + 1}`,
+        duration: l.duration || 'Auto',
+        videoUrl: l.video_url || l.videoUrl || '',
+        description: extractTextFromBlocks(l.content || l.description),
+        notes: extractTextFromBlocks(l.note || l.notes),
+        isCompleted: false,
+      }));
 
       const completedLessons = lessonsList.filter((l: any) => l.isCompleted).length;
       const totalLessons = lessonsList.length;
       const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
       const dueLessons = totalLessons - completedLessons;
 
-      // Creator & Instructor ডাটা এক্সট্র্যাক্ট
-      const rawCreator = data.creator || data.attributes?.creator?.data || data.attributes?.creator;
-      const rawInstructor = data.instructor || data.attributes?.instructor?.data || data.attributes?.instructor;
-
       setCourse({
         id: data.id,
         documentId: data.documentId,
-        title: data.title || data.attributes?.title || 'Untitled Course',
-        description: data.description || data.attributes?.description,
-        creator: rawCreator ? (rawCreator.attributes ? { id: rawCreator.id, ...rawCreator.attributes } : rawCreator) : undefined,
-        instructor: rawInstructor ? (rawInstructor.attributes ? { id: rawInstructor.id, ...rawInstructor.attributes } : rawInstructor) : undefined,
-        createdAt: data.createdAt || data.attributes?.createdAt,
-        updatedAt: data.updatedAt || data.attributes?.updatedAt,
+        title: data.title || 'Untitled Course',
+        description: data.description,
+        instructor: data.instructor || { username: 'Lead Instructor', email: 'instructor@lms.com' },
+        createdAt: new Date(data.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
         lessons: lessonsList,
         completedLessons,
         dueLessons,
@@ -245,7 +205,7 @@ export default function SingleCoursePage() {
         students: enrolledStudents,
       });
 
-      // ৫. কুইজ ও রেজাল্ট কাউন্ট
+      // কুইজ এবং সাবমিশন সংখ্যা লোড করা
       try {
         const targetCourseRef = data.id || data.documentId;
         const [qRes, rRes] = await Promise.all([
@@ -267,19 +227,39 @@ export default function SingleCoursePage() {
     if (courseId) loadCourse();
   }, [courseId]);
 
+  // Video URL Change
+  const handleVideoUrlChange = async (url: string) => {
+    setLessonForm((prev) => ({ ...prev, videoUrl: url }));
+
+    if (url.trim().length > 10) {
+      setIsDetectingDuration(true);
+      try {
+        const autoDuration = await getVideoDuration(url);
+        if (autoDuration) {
+          setLessonForm((prev) => ({ ...prev, duration: autoDuration }));
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsDetectingDuration(false);
+      }
+    }
+  };
+
   // Open Modal (Create / Edit)
   const handleOpenModal = (lesson: any = null) => {
     if (lesson) {
       setEditingLesson(lesson);
       setLessonForm({
         title: lesson.title,
+        duration: lesson.duration || '',
         videoUrl: lesson.videoUrl || '',
         description: lesson.description || '',
         notes: lesson.notes || '',
       });
     } else {
       setEditingLesson(null);
-      setLessonForm({ title: '', videoUrl: '', description: '', notes: '' });
+      setLessonForm({ title: '', duration: '', videoUrl: '', description: '', notes: '' });
     }
     setIsModalOpen(true);
   };
@@ -296,12 +276,11 @@ export default function SingleCoursePage() {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
 
-      // Strapi Lesson Schema: title, content, video_url, note, order, course
       const payload: any = {
-        title: lessonForm.title.trim(),
-        video_url: lessonForm.videoUrl.trim(),
+        title: lessonForm.title,
+        video_url: lessonForm.videoUrl,
         content: formatToStrapiBlocks(lessonForm.description),
-        note: lessonForm.notes.trim(),
+        note: lessonForm.notes,
       };
 
       if (!editingLesson && course) {
@@ -330,13 +309,13 @@ export default function SingleCoursePage() {
     }
   };
 
-  // Delete Modal Trigger
+  // ⚠️ Open Delete Modal
   const handleOpenDeleteModal = (lesson: any) => {
     setLessonToDelete(lesson);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm Delete
+  // 🗑️ Confirm Delete Lesson
   const handleConfirmDelete = async () => {
     if (!lessonToDelete) return;
     setDeleteLoading(true);
@@ -374,7 +353,7 @@ export default function SingleCoursePage() {
       <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
         <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
         <h2 className="text-lg font-bold text-white">Course Not Found</h2>
-        <Link href="/dashboard/admin/courses" className="inline-block mt-2 px-4 py-2 bg-indigo-600 rounded-xl text-xs text-white">
+        <Link href="/dashboard/instructor/courses" className="inline-block mt-2 px-4 py-2 bg-indigo-600 rounded-xl text-xs text-white">
           Back to Courses
         </Link>
       </div>
@@ -388,10 +367,10 @@ export default function SingleCoursePage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/admin/courses" className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 transition">
+          <Link href="/dashboard/instructor/courses" className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 transition">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -400,7 +379,7 @@ export default function SingleCoursePage() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Tab Controls */}
         <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('lessons')}
@@ -431,9 +410,9 @@ export default function SingleCoursePage() {
         </div>
       </div>
 
-      {/* Main Container */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Side: Dynamic Tab Content */}
+        {/* Left Side (Dynamic Tab Content) */}
         <div className="lg:col-span-2 space-y-4">
           {/* 1. LESSONS TAB */}
           {activeTab === 'lessons' && (
@@ -445,7 +424,7 @@ export default function SingleCoursePage() {
                     Course Curriculum & Lessons
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {course.lessons.length} Total Lessons Available
+                    {course.completedLessons} Completed • {course.dueLessons} Due/Pending
                   </p>
                 </div>
                 <button
@@ -460,7 +439,7 @@ export default function SingleCoursePage() {
                 <div className="space-y-2.5">
                   {course.lessons.map((lesson: any, idx: number) => {
                     const targetLessonId = lesson.documentId || lesson.id;
-                    const lessonLink = `/dashboard/admin/courses/${targetCourseId}/lessons/${targetLessonId}`;
+                    const lessonLink = `/dashboard/instructor/courses/${targetCourseId}/lessons/${targetLessonId}`;
 
                     return (
                       <div
@@ -479,7 +458,7 @@ export default function SingleCoursePage() {
                               {lesson.title}
                             </p>
                             <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Video className="w-3 h-3" /> Class {idx + 1}
+                              <Clock className="w-3 h-3" /> {lesson.duration || 'Auto'}
                             </span>
                           </div>
                         </Link>
@@ -519,7 +498,7 @@ export default function SingleCoursePage() {
             </div>
           )}
 
-          {/* 2. QUIZZES MANAGEMENT TAB */}
+          {/* 2. QUIZZES MANAGEMENT TAB (ADMIN VIEW) */}
           {activeTab === 'quizzes' && (
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -533,7 +512,7 @@ export default function SingleCoursePage() {
                   </p>
                 </div>
                 <Link
-                  href={`/dashboard/admin/courses/${targetCourseId}/quizzes`}
+                  href={`/dashboard/instructor/courses/${targetCourseId}/quizzes`}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow transition shrink-0"
                 >
                   <span>Open Quiz Manager</span>
@@ -541,6 +520,7 @@ export default function SingleCoursePage() {
                 </Link>
               </div>
 
+              {/* Statistics Overview Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
                   <div className="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
@@ -548,10 +528,10 @@ export default function SingleCoursePage() {
                   </div>
                   <h3 className="text-sm font-semibold text-white">Quiz Question Bank</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Total active quizzes: <span className="text-white font-bold">{quizzesCount}</span>.
+                    Total active quizzes: <span className="text-white font-bold">{quizzesCount}</span>. You can create, edit, and modify questions anytime.
                   </p>
                   <Link
-                    href={`/dashboard/admin/courses/${targetCourseId}/quizzes`}
+                    href={`/dashboard/instructor/courses/${targetCourseId}/quizzes`}
                     className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium pt-2"
                   >
                     Manage Question Sets ➔
@@ -564,10 +544,10 @@ export default function SingleCoursePage() {
                   </div>
                   <h3 className="text-sm font-semibold text-white">Student Exam Papers</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Total submissions received: <span className="text-white font-bold">{resultsCount}</span>.
+                    Total submissions received: <span className="text-white font-bold">{resultsCount}</span>. Review correct/incorrect answers for each student.
                   </p>
                   <Link
-                    href={`/dashboard/admin/courses/${targetCourseId}/quizzes`}
+                    href={`/dashboard/instructor/courses/${targetCourseId}/quizzes`}
                     className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium pt-2"
                   >
                     Review Exam Submissions ➔
@@ -625,91 +605,45 @@ export default function SingleCoursePage() {
             <h2 className="text-base font-bold text-white border-b border-slate-800 pb-3">Course Overview</h2>
             <div>
               <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">Total Lessons</span>
-                <span className="text-indigo-400 font-bold">{course.lessons.length}</span>
+                <span className="text-slate-400">Status</span>
+                <span className="text-indigo-400 font-bold">{course.progressPercentage}%</span>
               </div>
               <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-600" style={{ width: `100%` }} />
+                <div className="h-full bg-indigo-600" style={{ width: `${course.progressPercentage}%` }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 text-center">
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                <p className="text-[11px] text-slate-400">Completed</p>
+                <p className="text-lg font-bold text-emerald-400">{course.completedLessons}</p>
+              </div>
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                <p className="text-[11px] text-slate-400">Due / Pending</p>
+                <p className="text-lg font-bold text-amber-400">{course.dueLessons}</p>
               </div>
             </div>
           </div>
 
-          {/* Author & Assigned Instructor Details */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-sm font-bold text-white tracking-wide">Course Ownership & Details</h2>
-              <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-                Verified
-              </span>
-            </div>
-
-            {/* Created By */}
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Created By (Author)
-              </span>
-              <div className="flex items-center gap-3 p-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                  {course.creator?.username?.charAt(0).toUpperCase() || 'A'}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">
-                    {course.creator?.username || 'Platform Admin'}
-                  </p>
-                  <p className="text-[11px] text-slate-500 truncate">
-                    {course.creator?.email || 'System Created'}
-                  </p>
-                </div>
+            <h2 className="text-base font-bold text-white border-b border-slate-800 pb-3">Author Info</h2>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center shrink-0">
+                {course.instructor?.username?.charAt(0).toUpperCase() || 'I'}
+              </div>
+              <div className="truncate">
+                <p className="text-sm font-semibold text-white truncate">{course.instructor?.username}</p>
+                <p className="text-xs text-slate-500 truncate">{course.instructor?.email}</p>
               </div>
             </div>
-
-            {/* Assigned Instructor */}
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Assigned Instructor
-              </span>
-              {course.instructor ? (
-                <div className="flex items-center gap-3 p-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                    {course.instructor?.username?.charAt(0).toUpperCase() || 'I'}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white truncate">
-                      {course.instructor?.username}
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      {course.instructor?.email}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-2.5 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl text-center">
-                  <p className="text-[11px] text-slate-500">No instructor assigned yet</p>
-                </div>
-              )}
-            </div>
-
-            {/* Timeline Info */}
-            <div className="space-y-2 pt-1 border-t border-slate-800/60 text-[11px] text-slate-400">
-              <div className="flex items-center justify-between">
-                <span>Created on:</span>
-                <span className="text-slate-300 font-medium">
-                  {course.createdAt ? new Date(course.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span>Last Modified:</span>
-                <span className="text-slate-300 font-medium">
-                  {course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
-                </span>
-              </div>
+            <div className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs">
+              <Calendar className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>Created on {course.createdAt}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal: Add/Edit Lesson */}
+      {/* 🛠️ MODAL: CREATE / EDIT LESSON */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
@@ -736,12 +670,19 @@ export default function SingleCoursePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Video URL (YouTube/MP4) *</label>
+                <label className="flex items-center justify-between text-xs font-medium text-slate-300 mb-1">
+                  <span>Video URL (YouTube/MP4) *</span>
+                  {isDetectingDuration && (
+                    <span className="text-[10px] text-indigo-400 animate-pulse flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Auto-detecting duration...
+                    </span>
+                  )}
+                </label>
                 <input
                   type="text"
                   required
                   value={lessonForm.videoUrl}
-                  onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
+                  onChange={(e) => handleVideoUrlChange(e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
                   className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
                 />
@@ -791,7 +732,7 @@ export default function SingleCoursePage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* ⚠️ CUSTOM DELETE CONFIRMATION MODAL */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">

@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-08-27T21:56:43.419Z"
+    "x-generation-date": "2026-08-28T12:44:17.226Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -6762,6 +6762,29 @@
                               }
                             }
                           },
+                          "status_enrollment": {
+                            "type": "string",
+                            "enum": [
+                              "pending, ",
+                              "approved, ",
+                              "rejected"
+                            ]
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "payment_method": {
+                            "type": "string"
+                          },
+                          "transaction_id": {
+                            "type": "string"
+                          },
+                          "student_note": {
+                            "type": "string"
+                          },
+                          "progress": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -6837,6 +6860,24 @@
                         }
                       }
                     },
+                    "creator": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -6909,6 +6950,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "course": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -7422,6 +7481,17 @@
                   ],
                   "example": "string or id"
                 }
+              },
+              "creator": {
+                "oneOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "example": "string or id"
               },
               "locale": {
                 "type": "string"
@@ -9552,6 +9622,29 @@
                               }
                             }
                           },
+                          "status_enrollment": {
+                            "type": "string",
+                            "enum": [
+                              "pending, ",
+                              "approved, ",
+                              "rejected"
+                            ]
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "payment_method": {
+                            "type": "string"
+                          },
+                          "transaction_id": {
+                            "type": "string"
+                          },
+                          "student_note": {
+                            "type": "string"
+                          },
+                          "progress": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -9627,6 +9720,24 @@
                         }
                       }
                     },
+                    "creator": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -9699,6 +9810,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "course": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -9839,6 +9968,24 @@
               }
             }
           },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "documentId": {
+                "type": "string"
+              }
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -9955,6 +10102,29 @@
                   }
                 ],
                 "example": "string or id"
+              },
+              "status_enrollment": {
+                "type": "string",
+                "enum": [
+                  "pending, ",
+                  "approved, ",
+                  "rejected"
+                ]
+              },
+              "phone": {
+                "type": "string"
+              },
+              "payment_method": {
+                "type": "string"
+              },
+              "transaction_id": {
+                "type": "string"
+              },
+              "student_note": {
+                "type": "string"
+              },
+              "progress": {
+                "type": "integer"
               },
               "locale": {
                 "type": "string"
@@ -11908,6 +12078,29 @@
                               }
                             }
                           },
+                          "status_enrollment": {
+                            "type": "string",
+                            "enum": [
+                              "pending, ",
+                              "approved, ",
+                              "rejected"
+                            ]
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "payment_method": {
+                            "type": "string"
+                          },
+                          "transaction_id": {
+                            "type": "string"
+                          },
+                          "student_note": {
+                            "type": "string"
+                          },
+                          "progress": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -11983,6 +12176,24 @@
                         }
                       }
                     },
+                    "creator": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -12055,6 +12266,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "course": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -12149,6 +12378,29 @@
                 "type": "string"
               }
             }
+          },
+          "status_enrollment": {
+            "type": "string",
+            "enum": [
+              "pending, ",
+              "approved, ",
+              "rejected"
+            ]
+          },
+          "phone": {
+            "type": "string"
+          },
+          "payment_method": {
+            "type": "string"
+          },
+          "transaction_id": {
+            "type": "string"
+          },
+          "student_note": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer"
           },
           "createdAt": {
             "type": "string",
@@ -13786,6 +14038,24 @@
                       }
                     }
                   },
+                  "course": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -14307,6 +14577,29 @@
                         }
                       }
                     },
+                    "status_enrollment": {
+                      "type": "string",
+                      "enum": [
+                        "pending, ",
+                        "approved, ",
+                        "rejected"
+                      ]
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "payment_method": {
+                      "type": "string"
+                    },
+                    "transaction_id": {
+                      "type": "string"
+                    },
+                    "student_note": {
+                      "type": "string"
+                    },
+                    "progress": {
+                      "type": "integer"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -14379,6 +14672,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "creator": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -16545,6 +16856,29 @@
                               }
                             }
                           },
+                          "status_enrollment": {
+                            "type": "string",
+                            "enum": [
+                              "pending, ",
+                              "approved, ",
+                              "rejected"
+                            ]
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "payment_method": {
+                            "type": "string"
+                          },
+                          "transaction_id": {
+                            "type": "string"
+                          },
+                          "student_note": {
+                            "type": "string"
+                          },
+                          "progress": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -16620,6 +16954,24 @@
                         }
                       }
                     },
+                    "creator": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -16692,6 +17044,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "course": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -18887,6 +19257,29 @@
                               }
                             }
                           },
+                          "status_enrollment": {
+                            "type": "string",
+                            "enum": [
+                              "pending, ",
+                              "approved, ",
+                              "rejected"
+                            ]
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "payment_method": {
+                            "type": "string"
+                          },
+                          "transaction_id": {
+                            "type": "string"
+                          },
+                          "student_note": {
+                            "type": "string"
+                          },
+                          "progress": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -18962,6 +19355,24 @@
                         }
                       }
                     },
+                    "creator": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -19034,6 +19445,24 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "course": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },

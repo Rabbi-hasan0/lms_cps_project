@@ -491,6 +491,10 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    creator: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     description: Schema.Attribute.Text;
     enrollments: Schema.Attribute.Relation<
       'oneToMany',
@@ -539,7 +543,15 @@ export interface ApiEnrollmentEnrollment extends Struct.CollectionTypeSchema {
       'api::enrollment.enrollment'
     > &
       Schema.Attribute.Private;
+    payment_method: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    progress: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    status_enrollment: Schema.Attribute.Enumeration<
+      ['pending, ', 'approved, ', 'rejected']
+    >;
+    student_note: Schema.Attribute.Text;
+    transaction_id: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1113,6 +1125,7 @@ export interface PluginUsersPermissionsUser
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    course: Schema.Attribute.Relation<'oneToOne', 'api::course.course'>;
     courses: Schema.Attribute.Relation<'oneToMany', 'api::course.course'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

@@ -1,4 +1,4 @@
-// app/dashboard/admin/courses/[id]/quizzes/page.tsx
+// app/dashboard/instructor/courses/[id]/quizzes/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -170,49 +170,45 @@ export default function AdminCourseQuizzesPage() {
   };
 
   const handleSaveQuiz = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setModalLoading(true);
+    e.preventDefault();
+    setModalLoading(true);
 
-      try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        };
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-        // Strapi v5 রিলেশন: documentId পাঠানো নিশ্চিত করা
-        const targetCourseRef = course?.documentId || courseId || course?.id;
+      const payload: any = {
+        title: quizForm.title,
+        questions: quizForm.questions,
+      };
 
-        const payload: any = {
-          title: quizForm.title.trim(),
-          questions: quizForm.questions,
-        };
-
-        if (!editingQuiz) {
-          payload.course = targetCourseRef;
-
-          await fetchApi('/quizzes', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ data: payload }),
-          });
-        } else {
-          const targetId = editingQuiz.documentId || editingQuiz.id;
-          await fetchApi(`/quizzes/${targetId}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify({ data: payload }),
-          });
-        }
-
-        setIsModalOpen(false);
-        await loadData();
-      } catch (err: any) {
-        alert(err.message || 'Failed to save quiz');
-      } finally {
-        setModalLoading(false);
+      if (!editingQuiz && course) {
+        payload.course = course.id;
+        await fetchApi('/quizzes', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ data: payload }),
+        });
+      } else if (editingQuiz) {
+        const targetId = editingQuiz.documentId || editingQuiz.id;
+        await fetchApi(`/quizzes/${targetId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ data: payload }),
+        });
       }
-    };
+
+      setIsModalOpen(false);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to save quiz');
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!quizToDelete) return;
@@ -252,7 +248,7 @@ export default function AdminCourseQuizzesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            href={`/dashboard/admin/courses/${courseId}`}
+            href={`/dashboard/instructor/courses/${courseId}`}
             className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 transition"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -381,7 +377,7 @@ export default function AdminCourseQuizzesPage() {
                     const percent = Math.round(((sub.score || 0) / totalQ) * 100);
                     const isPassed = percent >= 50;
                     const targetSubId = sub.documentId || sub.id;
-                    const reviewLink = `/dashboard/admin/courses/${courseId}/quizzes/review/${targetSubId}`;
+                    const reviewLink = `/dashboard/instructor/courses/${courseId}/quizzes/review/${targetSubId}`;
 
                     return (
                       <tr key={sub.id} className="hover:bg-slate-950/40 transition">

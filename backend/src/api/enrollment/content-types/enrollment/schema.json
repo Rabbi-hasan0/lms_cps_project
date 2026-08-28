@@ -24,6 +24,29 @@
       "relation": "manyToOne",
       "target": "api::course.course",
       "inversedBy": "enrollments"
+    },
+    "status_enrollment": {
+      "type": "enumeration",
+      "enum": [
+        "pending, ",
+        "approved, ",
+        "rejected"
+      ]
+    },
+    "phone": {
+      "type": "string"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "transaction_id": {
+      "type": "string"
+    },
+    "student_note": {
+      "type": "text"
+    },
+    "progress": {
+      "type": "integer"
     }
   }
 }

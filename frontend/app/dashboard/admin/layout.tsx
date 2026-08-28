@@ -18,6 +18,7 @@ import {
   X,
   Newspaper,
   Loader2,
+  GraduationCap,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -91,8 +92,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard/admin', icon: Layers, exact: true },
     { name: 'Courses & Lessons', href: '/dashboard/admin/courses', icon: BookOpen },
-    { name: 'Blogs & Articles', href: '/dashboard/admin/blogs', icon: Newspaper },
     { name: 'Student Progress', href: '/dashboard/admin/progress', icon: Users, exact: false },
+    { name: 'Blogs & Articles', href: '/dashboard/admin/blogs', icon: Newspaper },
     { name: 'Users Role & Permissions', href: '/dashboard/admin/roles', icon: Users },
     { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
   ];
