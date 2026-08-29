@@ -27,16 +27,11 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
   'users-permissions': {
     config: {
       jwt: {
-        expiresIn: '30d', // 🎯 ৩০ দিনের টোকেন লাইফটাইম (ঘন ঘন লগআউট আটকাবে)
-      },
-      jwtManagement: 'refresh',
-      sessions: {
-        httpOnly: true,
-      },
+        expiresIn: '30d',
+      },     ে
     },
   },
 
-  // ১. Cloudinary Upload Provider + তোমার সিকিউরিটি রুলস
   upload: {
     config: {
       provider: 'cloudinary',
@@ -56,7 +51,6 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     },
   },
 
-  // ২. Email Provider (Nodemailer)
   email: {
     config: {
       provider: 'nodemailer',
