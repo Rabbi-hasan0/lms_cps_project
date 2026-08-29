@@ -28,10 +28,11 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     config: {
       jwt: {
         expiresIn: '30d',
-      },     ে
+      },
     },
   },
 
+  // Cloudinary Upload Provider
   upload: {
     config: {
       provider: 'cloudinary',
@@ -51,6 +52,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
     },
   },
 
+  // Email Provider (Nodemailer)
   email: {
     config: {
       provider: 'nodemailer',
